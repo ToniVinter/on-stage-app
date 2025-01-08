@@ -13,6 +13,8 @@ class ImageWithPlaceholder extends StatelessWidget {
     this.borderColor,
     this.backgroundColor,
     this.placeholderColor,
+    this.size = 36,
+    this.borderWidth = 2,
   });
 
   final Uint8List? photo;
@@ -21,14 +23,16 @@ class ImageWithPlaceholder extends StatelessWidget {
   final Color? borderColor;
   final Color? backgroundColor;
   final Color? placeholderColor;
+  final double size;
+  final double borderWidth;
 
   @override
   Widget build(BuildContext context) {
     final hasValidPhoto = photo?.isNotNullOrEmpty ?? false;
 
     return Container(
-      width: 36,
-      height: 36,
+      width: size,
+      height: size,
       decoration: BoxDecoration(
         color: backgroundColor ??
             (context.isDarkMode
@@ -36,7 +40,7 @@ class ImageWithPlaceholder extends StatelessWidget {
                 : context.colorScheme.secondary),
         border: Border.all(
           color: borderColor ?? context.colorScheme.onSurfaceVariant,
-          width: 2,
+          width: borderWidth,
         ),
         shape: BoxShape.circle,
         image: hasValidPhoto

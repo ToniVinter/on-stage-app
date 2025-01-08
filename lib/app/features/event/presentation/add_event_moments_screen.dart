@@ -181,19 +181,22 @@ class AddEventMomentsScreenState extends ConsumerState<AddEventMomentsScreen> {
       onTap: hasChanges
           ? null
           : () {
-              if (eventItem.song == null) return;
-              final eventItems =
-                  ref.read(eventItemsNotifierProvider).eventItems;
-              ref
-                  .read(eventItemsNotifierProvider.notifier)
-                  .setCurrentIndex(eventItems.indexOf(eventItem));
+              if (eventItem.song == null) {
+                context.pushNamed(AppRoute.momentDetails.name);
+              } else {
+                final eventItems =
+                    ref.read(eventItemsNotifierProvider).eventItems;
+                ref
+                    .read(eventItemsNotifierProvider.notifier)
+                    .setCurrentIndex(eventItems.indexOf(eventItem));
 
-              context.pushNamed(
-                AppRoute.songDetailsWithPages.name,
-                queryParameters: {
-                  'eventId': widget.eventId,
-                },
-              );
+                context.pushNamed(
+                  AppRoute.songDetailsWithPages.name,
+                  queryParameters: {
+                    'eventId': widget.eventId,
+                  },
+                );
+              }
             },
       isAdmin: ref.watch(permissionServiceProvider).hasAccessToEdit,
     );

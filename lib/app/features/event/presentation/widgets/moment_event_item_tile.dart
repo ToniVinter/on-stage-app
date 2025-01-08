@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
+import 'package:on_stage_app/app/features/event/domain/models/stager/stager.dart';
+import 'package:on_stage_app/app/features/event/presentation/widgets/assigned_persons.dart';
 import 'package:on_stage_app/app/utils/build_context_extensions.dart';
 
 class EventItemTile extends StatefulWidget {
@@ -11,7 +13,6 @@ class EventItemTile extends StatefulWidget {
     required this.isAdmin,
     this.onTap,
     this.onDelete,
-    this.trailing,
     super.key,
   });
 
@@ -22,7 +23,6 @@ class EventItemTile extends StatefulWidget {
   final void Function()? onTap;
   final void Function()? onDelete;
   final bool isAdmin;
-  final Widget? trailing;
 
   @override
   _EventItemTileState createState() => _EventItemTileState();
@@ -40,7 +40,7 @@ class _EventItemTileState extends State<EventItemTile> {
   @override
   Widget build(BuildContext context) {
     return InkWell(
-      onTap: widget.isSong ? widget.onTap : null,
+      onTap: widget.onTap,
       borderRadius: BorderRadius.circular(8),
       highlightColor: Theme.of(context).colorScheme.surfaceBright,
       child: Padding(
@@ -79,61 +79,116 @@ class _EventItemTileState extends State<EventItemTile> {
                         : context.colorScheme.tertiary,
                   ),
                 ),
-                child: Row(
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
-                      child: _buildIcon(),
-                    ),
-                    const SizedBox(width: 12),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          widget.name,
-                          style: context.textTheme.titleMedium!.copyWith(
-                            color: context.colorScheme.onSurface,
-                          ),
+                child: IntrinsicHeight(
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Align(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 12),
+                          child: _buildIcon(),
                         ),
-                        if (widget.isSong)
-                          Row(
-                            children: [
-                              Text(
-                                widget.artist,
-                                style: context.textTheme.bodyMedium!.copyWith(
-                                  color: context.colorScheme.outline,
-                                ),
+                      ),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            widget.name,
+                            style: context.textTheme.titleMedium!.copyWith(
+                              color: context.colorScheme.onSurface,
+                            ),
+                          ),
+                          if (!widget.isSong) ...[
+                            // if(description.isNotEmpty)
+                            _buildDescription(context),
+                          ],
+                          if (widget.isSong) ...[
+                            _buildSongDetails(context),
+                          ],
+                          // if(stagers.isNotEmpty)
+                          AssignedPersons(
+                            isSong: widget.isSong,
+                            stagers: const [
+                              Stager(
+                                id: '1',
+                                name: 'Timotei Popescu',
+                                profilePicture: null,
+                                participationStatus: null,
+                                userId: '1',
                               ),
-                              const SizedBox(width: 12),
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 6,
-                                  vertical: 4,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: context.colorScheme.surface,
-                                  borderRadius: BorderRadius.circular(20),
-                                ),
-                                child: Text(
-                                  widget.songKey,
-                                  style: context.textTheme.bodyMedium!.copyWith(
-                                    color: context.colorScheme.outline,
-                                  ),
-                                ),
+                              Stager(
+                                id: '1',
+                                name: 'Ana Basescu',
+                                profilePicture: null,
+                                participationStatus: null,
+                                userId: '1',
                               ),
                             ],
                           ),
-                      ],
-                    ),
-                    const Spacer(),
-                    widget.trailing ?? const SizedBox(),
-                  ],
+                        ],
+                      ),
+                      const Spacer(),
+                      Padding(
+                        padding: const EdgeInsets.only(right: 12),
+                        child: Badge(
+                          label: Text(
+                            '12:05',
+                            style: context.textTheme.bodyMedium!.copyWith(
+                              color: context.colorScheme.outline,
+                            ),
+                          ),
+                          backgroundColor: context.colorScheme.surface,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               );
             },
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildDescription(BuildContext context) {
+    return Text(
+      'Descriere vine aici sub title',
+      style: context.textTheme.bodyMedium!
+          .copyWith(color: context.colorScheme.outline),
+    );
+  }
+
+  Widget _buildSongDetails(BuildContext context) {
+    return Row(
+      children: [
+        Text(
+          widget.artist,
+          style: context.textTheme.bodyMedium!.copyWith(
+            color: context.colorScheme.outline,
+          ),
+        ),
+        const SizedBox(width: 12),
+        Container(
+          padding: const EdgeInsets.symmetric(
+            horizontal: 6,
+            vertical: 4,
+          ),
+          decoration: BoxDecoration(
+            color: context.colorScheme.surface,
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Text(
+            widget.songKey,
+            style: context.textTheme.bodyMedium!.copyWith(
+              color: context.colorScheme.outline,
+            ),
+          ),
+        ),
+      ],
     );
   }
 

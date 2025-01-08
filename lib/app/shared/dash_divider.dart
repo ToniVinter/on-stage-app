@@ -4,10 +4,14 @@ import 'package:on_stage_app/app/utils/build_context_extensions.dart';
 class DashedLineDivider extends StatelessWidget {
   const DashedLineDivider({
     this.color,
+    this.dashWidth = 3,
+    this.dashSpace = 5,
     super.key,
   });
 
   final Color? color;
+  final double dashWidth;
+  final double dashSpace;
 
   @override
   Widget build(BuildContext context) {
@@ -15,8 +19,8 @@ class DashedLineDivider extends StatelessWidget {
       height: 1,
       child: CustomPaint(
         painter: _DashedLinePainter(
-          dashWidth: 3,
-          dashSpace: 5,
+          dashWidth: dashWidth,
+          dashSpace: dashSpace,
           color: color ?? context.colorScheme.surfaceContainer,
         ),
         size: const Size(double.infinity, 1),

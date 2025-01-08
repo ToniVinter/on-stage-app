@@ -14,6 +14,7 @@ import 'package:on_stage_app/app/features/loading/presentation/loading_screen.da
 import 'package:on_stage_app/app/features/login/application/login_notifier.dart';
 import 'package:on_stage_app/app/features/login/presentation/login_screen.dart';
 import 'package:on_stage_app/app/features/login/presentation/sign_up_screen.dart';
+import 'package:on_stage_app/app/features/momenta/presentation/moment_screen.dart';
 import 'package:on_stage_app/app/features/notifications/presentation/notification_page.dart';
 import 'package:on_stage_app/app/features/plan/presentation/plans_screen.dart';
 import 'package:on_stage_app/app/features/song/presentation/add_new_song/add_song_first_step_details.dart';
@@ -256,6 +257,13 @@ class NavigationNotifier extends _$NavigationNotifier {
                               '${AppRoute.addEventSongs.name}/$eventId',
                             );
                         return AddEventMomentsScreen(eventId: eventId);
+                      },
+                    ),
+                    GoRoute(
+                      name: AppRoute.momentDetails.name,
+                      path: 'momentDetails',
+                      builder: (context, state) {
+                        return const MomentScreen();
                       },
                     ),
                     GoRoute(
