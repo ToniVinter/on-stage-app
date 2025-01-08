@@ -21,7 +21,7 @@ dependencies:
   equatable: ^2.0.5
   flutter:
     sdk: flutter
-  flutter_localization: ^0.2.2
+  flutter_localization: ^0.3.1
   flutter_riverpod: ^2.6.1
   freezed: ^2.5.7
   freezed_annotation: ^2.4.4
