@@ -35,6 +35,7 @@ enum AppRoute {
   editSongInfo,
   editSongContent,
   groups,
+  momentDetails,
 }
 
 extension GoRouterExtension on GoRouter {

@@ -21,8 +21,14 @@ class AssignedPersons extends StatelessWidget {
           SizedBox(
             width: stagers.length > 1 ? 52 : 32,
             child: ParticipantsOnTile(
-              participantsProfileBytes: [],
-              participantsProfile: stagers.map((e) => e.name ?? '').toList(),
+              borderColor: isSong
+                  ? context.colorScheme.secondary
+                  : context.colorScheme.onSurfaceVariant,
+              backgroundColor: isSong
+                  ? context.colorScheme.secondary
+                  : context.colorScheme.onSurfaceVariant,
+              participantsProfileName:
+                  stagers.map((e) => e.name ?? '').toList(),
               participantsLength: stagers.length,
               width: 24,
             ),

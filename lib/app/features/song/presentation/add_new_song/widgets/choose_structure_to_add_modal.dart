@@ -177,14 +177,6 @@ class ChooseStructureToAddModalState
           onPressed: () {
             Navigator.of(context).pop(_selectedStructureItem);
           },
-          boxShadow: BoxShadow(
-            color: context.isLargeScreen
-                ? context.colorScheme.surfaceContainerHigh
-                : context.colorScheme.surface,
-            blurRadius: 24,
-            spreadRadius: 36,
-            offset: const Offset(0, 24),
-          ),
           isEnabled: _selectedStructureItem != null,
         ),
       ),

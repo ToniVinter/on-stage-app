@@ -27,7 +27,6 @@ class PlaceholderImageWidget extends StatelessWidget {
                 textAlign: TextAlign.center,
                 style: isLargeTitle
                     ? context.textTheme.titleLarge?.copyWith(
-                        fontSize: 42,
                         color: textColor ?? context.colorScheme.onSurface,
                       )
                     : context.textTheme.titleSmall?.copyWith(
