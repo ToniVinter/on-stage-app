@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:on_stage_app/app/features/event/presentation/add_moments_modal.dart';
 import 'package:on_stage_app/app/features/event/presentation/add_songs_modal.dart';
 import 'package:on_stage_app/app/features/event/presentation/widgets/add_item_button_widget.dart';
+import 'package:on_stage_app/app/features/event_items/presentation/add_edit_moment_modal.dart';
 import 'package:on_stage_app/app/shared/nested_scroll_modal.dart';
 import 'package:on_stage_app/app/theme/theme.dart';
 import 'package:on_stage_app/app/utils/build_context_extensions.dart';
@@ -67,9 +67,9 @@ class AddItemsToEventModalState extends ConsumerState<AddItemsToEventModal> {
             backgroundColor: context.colorScheme.onSurfaceVariant,
             onPressed: () {
               context.popDialog();
-              AddMomentsModal.show(
+              AddEditMomentModal.show(
                 context: context,
-                onMomentsAdded: widget.onItemsAdded,
+                // onMomentAdded: widget.onItemsAdded,
               );
             },
           ),

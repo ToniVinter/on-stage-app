@@ -62,4 +62,21 @@ class TimeUtils {
       minute + adjustment,
     );
   }
+
+  String formatDuration(Duration? duration) {
+    if (duration == null) return '0:00';
+
+    final hours = duration.inHours;
+    final minutes = duration.inMinutes % 60;
+
+    if (hours == 0) {
+      return '${minutes}min';
+    }
+
+    if (minutes == 0) {
+      return '${hours}h';
+    }
+
+    return '${hours}h ${minutes}min';
+  }
 }

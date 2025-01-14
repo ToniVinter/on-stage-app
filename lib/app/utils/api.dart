@@ -139,4 +139,7 @@ class API {
   static const String deletePosition = 'positions/{id}';
 
   static const String getAllPositionsWithStagers = 'positions/stagers';
+
+  static const String moments = 'moments';
+  static const String momentById = 'moments/{id}';
 }

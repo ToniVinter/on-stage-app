@@ -19,7 +19,6 @@ class GroupsEventGrid extends ConsumerWidget {
 
     return LayoutBuilder(
       builder: (_, constraints) {
-        print('maxWidth: ${constraints.maxWidth}');
         return GridView.builder(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),

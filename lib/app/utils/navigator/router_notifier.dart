@@ -14,14 +14,13 @@ import 'package:on_stage_app/app/features/loading/presentation/loading_screen.da
 import 'package:on_stage_app/app/features/login/application/login_notifier.dart';
 import 'package:on_stage_app/app/features/login/presentation/login_screen.dart';
 import 'package:on_stage_app/app/features/login/presentation/sign_up_screen.dart';
-import 'package:on_stage_app/app/features/momenta/presentation/moment_screen.dart';
 import 'package:on_stage_app/app/features/notifications/presentation/notification_page.dart';
 import 'package:on_stage_app/app/features/plan/presentation/plans_screen.dart';
 import 'package:on_stage_app/app/features/song/presentation/add_new_song/add_song_first_step_details.dart';
 import 'package:on_stage_app/app/features/song/presentation/add_new_song/add_song_second_step_content.dart';
+import 'package:on_stage_app/app/features/song/presentation/event_items_details_screen.dart';
 import 'package:on_stage_app/app/features/song/presentation/saved_songs_screen.dart';
 import 'package:on_stage_app/app/features/song/presentation/song_detail_screen.dart';
-import 'package:on_stage_app/app/features/song/presentation/song_details_with_pages_screen.dart';
 import 'package:on_stage_app/app/features/song/presentation/songs_screen.dart';
 import 'package:on_stage_app/app/features/team/presentation/add_team_member_screen.dart';
 import 'package:on_stage_app/app/features/team/presentation/team_details_screen.dart';
@@ -232,16 +231,16 @@ class NavigationNotifier extends _$NavigationNotifier {
                       },
                     ),
                     GoRoute(
-                      name: AppRoute.songDetailsWithPages.name,
-                      path: 'songDetailsWithPages',
+                      name: AppRoute.eventItemsWithPages.name,
+                      path: 'eventItemsWithPages',
                       builder: (context, state) {
                         final eventId = state.uri.queryParameters['eventId']!;
                         ref
                             .read(analyticsServiceProvider.notifier)
                             .logScreenView(
-                              AppRoute.songDetailsWithPages.name,
+                              AppRoute.eventItemsWithPages.name,
                             );
-                        return SongDetailsWithPagesScreen(
+                        return EventItemsDetailsScreen(
                           eventId: eventId,
                         );
                       },
@@ -257,13 +256,6 @@ class NavigationNotifier extends _$NavigationNotifier {
                               '${AppRoute.addEventSongs.name}/$eventId',
                             );
                         return AddEventMomentsScreen(eventId: eventId);
-                      },
-                    ),
-                    GoRoute(
-                      name: AppRoute.momentDetails.name,
-                      path: 'momentDetails',
-                      builder: (context, state) {
-                        return const MomentScreen();
                       },
                     ),
                     GoRoute(

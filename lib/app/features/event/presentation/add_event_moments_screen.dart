@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:on_stage_app/app/features/event/domain/models/event_items/event_item.dart';
@@ -147,10 +149,21 @@ class AddEventMomentsScreenState extends ConsumerState<AddEventMomentsScreen> {
   }
 
   Widget _proxyDecorator(Widget child, int index, Animation<double> animation) {
-    return Material(
-      color: Colors.transparent,
-      elevation: 6,
-      shadowColor: Colors.black.withOpacity(0.1),
+    return AnimatedBuilder(
+      animation: animation,
+      builder: (BuildContext context, Widget? child) {
+        final animValue = Curves.easeIn.transform(animation.value);
+        final scale = lerpDouble(1, 1.02, animValue)!;
+        return Transform.scale(
+          scale: scale,
+          child: Card(
+            color: context.colorScheme.surface.withOpacity(0.2),
+            elevation: 6,
+            shadowColor: Colors.black.withOpacity(0.2),
+            child: child,
+          ),
+        );
+      },
       child: child,
     );
   }
@@ -166,8 +179,7 @@ class AddEventMomentsScreenState extends ConsumerState<AddEventMomentsScreen> {
     final hasChanges = ref.watch(hasChangesProvider);
     return EventItemTile(
       key: ValueKey(eventItem.hashCode),
-      isSong: eventItem.song?.id != null,
-      name: eventItem.name ?? '',
+      eventItem: eventItem,
       artist: eventItem.song?.artist?.name ?? '',
       songKey: eventItem.song?.key?.name ?? '',
       onDelete: isStatic
@@ -181,22 +193,18 @@ class AddEventMomentsScreenState extends ConsumerState<AddEventMomentsScreen> {
       onTap: hasChanges
           ? null
           : () {
-              if (eventItem.song == null) {
-                context.pushNamed(AppRoute.momentDetails.name);
-              } else {
-                final eventItems =
-                    ref.read(eventItemsNotifierProvider).eventItems;
-                ref
-                    .read(eventItemsNotifierProvider.notifier)
-                    .setCurrentIndex(eventItems.indexOf(eventItem));
+              final eventItems =
+                  ref.read(eventItemsNotifierProvider).eventItems;
+              ref
+                  .read(eventItemsNotifierProvider.notifier)
+                  .setCurrentIndex(eventItems.indexOf(eventItem));
 
-                context.pushNamed(
-                  AppRoute.songDetailsWithPages.name,
-                  queryParameters: {
-                    'eventId': widget.eventId,
-                  },
-                );
-              }
+              context.pushNamed(
+                AppRoute.eventItemsWithPages.name,
+                queryParameters: {
+                  'eventId': widget.eventId,
+                },
+              );
             },
       isAdmin: ref.watch(permissionServiceProvider).hasAccessToEdit,
     );
@@ -214,7 +222,7 @@ class AddEventMomentsScreenState extends ConsumerState<AddEventMomentsScreen> {
           text: 'Add Songs or Moments',
           icon: Icons.add,
         ),
-        const SizedBox(height: 100),
+        const SizedBox(height: 160),
       ],
     );
   }

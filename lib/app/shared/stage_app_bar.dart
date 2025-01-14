@@ -36,8 +36,10 @@ class StageAppBar extends StatelessWidget implements PreferredSizeWidget {
                 ? context.colorScheme.surfaceContainerHigh
                 : context.colorScheme.surface),
         leading: _buildLeading(context),
-        // leadingWidth: 48,
         centerTitle: centerTitle,
+        titleSpacing:
+            isBackButtonVisible ? 0 : NavigationToolbar.kMiddleSpacing,
+        leadingWidth: 46,
         title: titleWidget ??
             Text(
               title,

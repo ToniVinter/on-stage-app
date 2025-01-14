@@ -24,7 +24,7 @@ enum AppRoute {
   onboarding,
   loading,
   signUp,
-  songDetailsWithPages,
+  eventItemsWithPages,
   createSongInfo,
   addStructureForSong,
   plans,

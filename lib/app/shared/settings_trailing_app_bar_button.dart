@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:on_stage_app/app/utils/build_context_extensions.dart';
 
 class SettingsTrailingAppBarButton extends ConsumerWidget {
   const SettingsTrailingAppBarButton({
-    required this.onTap,
+    this.onTap,
     this.iconPath,
     this.rightPadding = 6,
     super.key,
   });
 
-  final void Function() onTap;
+  final void Function()? onTap;
   final String? iconPath;
   final double rightPadding;
 
@@ -20,26 +20,21 @@ class SettingsTrailingAppBarButton extends ConsumerWidget {
     return Padding(
       padding: EdgeInsets.only(right: rightPadding),
       child: IconButton(
-        style: IconButton.styleFrom(
-          visualDensity: VisualDensity.compact,
-          enableFeedback: true,
-          highlightColor: context.colorScheme.surfaceBright,
-          backgroundColor: context.colorScheme.onSurfaceVariant,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
+        visualDensity: VisualDensity.compact,
+        padding: EdgeInsets.zero,
+        color: context.colorScheme.onSurface,
+        iconSize: 16,
+        style: ButtonStyle(
+          shape: WidgetStateProperty.all(
+            RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
           ),
-          padding: EdgeInsets.zero,
+          backgroundColor:
+              WidgetStateProperty.all(context.colorScheme.onSurfaceVariant),
         ),
+        icon: const Icon(LucideIcons.settings_2),
         onPressed: onTap,
-        icon: SvgPicture.asset(
-          iconPath ?? 'assets/icons/mixer_horizontal.svg',
-          colorFilter: ColorFilter.mode(
-            context.colorScheme.outline,
-            BlendMode.srcIn,
-          ),
-          height: 16,
-          width: 16,
-        ),
       ),
     );
   }

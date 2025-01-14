@@ -33,7 +33,7 @@ class OrderStructureItemsWidgetState extends ConsumerState<ReorderListWidget> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const SizedBox(height: 16),
-          if (hasEditorsRight) _buildReordableList() else _buildList(),
+          if (hasEditorsRight) _buildReorderableList() else _buildList(),
           const SizedBox(height: 42),
         ],
       ),
@@ -60,7 +60,7 @@ class OrderStructureItemsWidgetState extends ConsumerState<ReorderListWidget> {
     );
   }
 
-  Widget proxyDecorator(Widget child, int index, Animation<double> animation) {
+  Widget _proxyDecorator(Widget child, int index, Animation<double> animation) {
     return AnimatedBuilder(
       animation: animation,
       builder: (BuildContext context, Widget? child) {
@@ -80,7 +80,7 @@ class OrderStructureItemsWidgetState extends ConsumerState<ReorderListWidget> {
     );
   }
 
-  Widget _buildReordableList() {
+  Widget _buildReorderableList() {
     final cacheStructureItems =
         ref.watch(songPreferencesControllerProvider).structureItems.toList();
     return ReorderableListView.builder(
@@ -89,7 +89,7 @@ class OrderStructureItemsWidgetState extends ConsumerState<ReorderListWidget> {
       physics: const NeverScrollableScrollPhysics(),
       shrinkWrap: true,
       itemCount: cacheStructureItems.length,
-      proxyDecorator: proxyDecorator,
+      proxyDecorator: _proxyDecorator,
       itemBuilder: (context, index) {
         return MyDragStartListener(
           key: ValueKey('${cacheStructureItems[index].shortName}_$index'),

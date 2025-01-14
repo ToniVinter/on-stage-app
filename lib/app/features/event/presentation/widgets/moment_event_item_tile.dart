@@ -1,34 +1,38 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
+import 'package:on_stage_app/app/features/event/application/event/event_notifier.dart';
+import 'package:on_stage_app/app/features/event/domain/models/event_items/event_item.dart';
 import 'package:on_stage_app/app/features/event/domain/models/stager/stager.dart';
 import 'package:on_stage_app/app/features/event/presentation/widgets/assigned_persons.dart';
+import 'package:on_stage_app/app/shared/adaptive_duration_picker.dart';
 import 'package:on_stage_app/app/utils/build_context_extensions.dart';
+import 'package:on_stage_app/app/utils/list_utils.dart';
+import 'package:on_stage_app/app/utils/string_utils.dart';
 
-class EventItemTile extends StatefulWidget {
+class EventItemTile extends ConsumerStatefulWidget {
   const EventItemTile({
-    required this.name,
+    required this.eventItem,
     required this.artist,
     required this.songKey,
-    required this.isSong,
     required this.isAdmin,
     this.onTap,
     this.onDelete,
     super.key,
   });
 
-  final String name;
+  final EventItem eventItem;
   final String artist;
   final String songKey;
-  final bool isSong;
   final void Function()? onTap;
   final void Function()? onDelete;
   final bool isAdmin;
 
   @override
-  _EventItemTileState createState() => _EventItemTileState();
+  EventItemTileState createState() => EventItemTileState();
 }
 
-class _EventItemTileState extends State<EventItemTile> {
+class EventItemTileState extends ConsumerState<EventItemTile> {
   bool isSliding = false;
 
   void _setSliding(bool sliding) {
@@ -37,8 +41,11 @@ class _EventItemTileState extends State<EventItemTile> {
     });
   }
 
+  bool get isSong => widget.eventItem.song?.id != null;
+
   @override
   Widget build(BuildContext context) {
+    final eventStartDate = ref.watch(eventNotifierProvider).event?.dateTime;
     return InkWell(
       onTap: widget.onTap,
       borderRadius: BorderRadius.circular(8),
@@ -46,7 +53,7 @@ class _EventItemTileState extends State<EventItemTile> {
       child: Padding(
         padding: const EdgeInsets.only(bottom: 8),
         child: Slidable(
-          key: ValueKey(widget.name),
+          key: ValueKey(widget.eventItem.name),
           endActionPane: widget.isAdmin ? _buildActionPane(context) : null,
           child: Builder(
             builder: (context) {
@@ -64,7 +71,7 @@ class _EventItemTileState extends State<EventItemTile> {
               return Container(
                 padding: const EdgeInsets.symmetric(vertical: 12),
                 decoration: BoxDecoration(
-                  color: widget.isSong
+                  color: widget.eventItem.song?.id != null
                       ? context.colorScheme.onSurfaceVariant
                       : context.colorScheme.tertiary,
                   borderRadius: isSliding
@@ -74,7 +81,7 @@ class _EventItemTileState extends State<EventItemTile> {
                         )
                       : BorderRadius.circular(8),
                   border: Border.all(
-                    color: widget.isSong
+                    color: isSong
                         ? context.colorScheme.onSurfaceVariant
                         : context.colorScheme.tertiary,
                   ),
@@ -89,57 +96,76 @@ class _EventItemTileState extends State<EventItemTile> {
                           child: _buildIcon(),
                         ),
                       ),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            widget.name,
-                            style: context.textTheme.titleMedium!.copyWith(
-                              color: context.colorScheme.onSurface,
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              widget.eventItem.name ?? '',
+                              style: context.textTheme.titleMedium!.copyWith(
+                                color: context.colorScheme.onSurface,
+                              ),
                             ),
-                          ),
-                          if (!widget.isSong) ...[
-                            // if(description.isNotEmpty)
-                            _buildDescription(context),
-                          ],
-                          if (widget.isSong) ...[
-                            _buildSongDetails(context),
-                          ],
-                          // if(stagers.isNotEmpty)
-                          AssignedPersons(
-                            isSong: widget.isSong,
-                            stagers: const [
-                              Stager(
-                                id: '1',
-                                name: 'Timotei Popescu',
-                                profilePicture: null,
-                                participationStatus: null,
-                                userId: '1',
-                              ),
-                              Stager(
-                                id: '1',
-                                name: 'Ana Basescu',
-                                profilePicture: null,
-                                participationStatus: null,
-                                userId: '1',
-                              ),
+                            if (!isSong &&
+                                widget.eventItem.description
+                                    .isNotNullEmptyOrWhitespace) ...[
+                              _buildDescription(context),
                             ],
-                          ),
-                        ],
+                            if (isSong) ...[
+                              _buildSongDetails(context),
+                            ],
+                            if (widget.eventItem.leadVocals.isNotNullOrEmpty)
+                              AssignedPersons(
+                                isSong: isSong,
+                                stagers: widget.eventItem.leadVocals!
+                                    .map(
+                                      (e) => Stager(
+                                        id: e.id,
+                                        name: e.name,
+                                        profilePicture: e.profilePicture,
+                                        participationStatus:
+                                            e.participationStatus,
+                                        userId: e.userId,
+                                      ),
+                                    )
+                                    .toList(),
+                              ),
+                          ],
+                        ),
                       ),
-                      const Spacer(),
                       Padding(
                         padding: const EdgeInsets.only(right: 12),
-                        child: Badge(
-                          label: Text(
-                            '12:05',
-                            style: context.textTheme.bodyMedium!.copyWith(
-                              color: context.colorScheme.outline,
+                        child: Material(
+                          color: context.colorScheme.surface,
+                          borderRadius: BorderRadius.circular(20),
+                          child: InkWell(
+                            overlayColor: WidgetStateProperty.all(
+                              context.colorScheme.surfaceBright,
                             ),
-                          ),
-                          backgroundColor: context.colorScheme.surface,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
+                            borderRadius: BorderRadius.circular(20),
+                            onTap: () => AdaptiveDurationPicker.show(
+                              context: context,
+                              initialDuration: Duration.zero,
+                            ),
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: Colors.transparent,
+                                borderRadius: BorderRadius.circular(20),
+                                border: Border.all(
+                                  color: context.colorScheme.outline,
+                                ),
+                              ),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                              ),
+                              child: Text(
+                                widget.eventItem
+                                    .getTime(eventStartDate ?? DateTime.now()),
+                                style: context.textTheme.bodyMedium!.copyWith(
+                                  color: context.colorScheme.outline,
+                                ),
+                              ),
+                            ),
                           ),
                         ),
                       ),
@@ -156,7 +182,9 @@ class _EventItemTileState extends State<EventItemTile> {
 
   Widget _buildDescription(BuildContext context) {
     return Text(
-      'Descriere vine aici sub title',
+      'fsfgdfdasfhsbf dfasjkhfb sdf sadf ajhb ',
+      overflow: TextOverflow.ellipsis,
+      maxLines: 1,
       style: context.textTheme.bodyMedium!
           .copyWith(color: context.colorScheme.outline),
     );
@@ -175,7 +203,7 @@ class _EventItemTileState extends State<EventItemTile> {
         Container(
           padding: const EdgeInsets.symmetric(
             horizontal: 6,
-            vertical: 4,
+            vertical: 1,
           ),
           decoration: BoxDecoration(
             color: context.colorScheme.surface,
@@ -199,7 +227,7 @@ class _EventItemTileState extends State<EventItemTile> {
         color: Color(0xFF828282),
         size: 20,
       );
-    } else if (widget.isSong) {
+    } else if (isSong) {
       return Icon(
         Icons.music_note_rounded,
         color: context.colorScheme.error,
