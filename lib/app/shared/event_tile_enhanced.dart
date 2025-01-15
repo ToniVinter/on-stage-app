@@ -1,7 +1,9 @@
+import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:on_stage_app/app/features/event/application/event/event_notifier.dart';
 import 'package:on_stage_app/app/features/event/presentation/widgets/participants_on_tile.dart';
 import 'package:on_stage_app/app/features/permission/application/permission_notifier.dart';
 import 'package:on_stage_app/app/router/app_router.dart';
@@ -75,8 +77,13 @@ class EventTileEnhanced extends ConsumerWidget {
                 SizedBox(
                   width: 150,
                   child: ElevatedButton.icon(
-                    onPressed: () {
-                      context.pushNamed(AppRoute.addEvent.name);
+                    onPressed: () async {
+                      await ref
+                          .read(eventNotifierProvider.notifier)
+                          .createEmptyEvent();
+                      if (context.mounted) {
+                        unawaited(context.pushNamed(AppRoute.addEvent.name));
+                      }
                     },
                     icon: Assets.icons.plus.svg(
                       colorFilter: ColorFilter.mode(
@@ -104,9 +111,9 @@ class EventTileEnhanced extends ConsumerWidget {
                 )
               else
                 ParticipantsOnTile(
-                  backgroundColor: context.colorScheme.onSurface,
+                  backgroundColor: Colors.white,
                   borderColor: context.colorScheme.tertiary,
-                  textColor: context.colorScheme.surface,
+                  textColor: Colors.black,
                   participantsProfileBytes: participantsProfileBytes,
                   participantsLength: participantsCount,
                   participantsName: participantsName,

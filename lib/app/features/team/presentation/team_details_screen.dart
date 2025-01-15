@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:on_stage_app/app/features/event/presentation/widgets/custom_setting_tile.dart';
 import 'package:on_stage_app/app/features/event/presentation/widgets/edit_field_modal.dart';
 import 'package:on_stage_app/app/features/permission/application/permission_notifier.dart';
+import 'package:on_stage_app/app/features/song/presentation/widgets/preferences/preferences_action_tile.dart';
 import 'package:on_stage_app/app/features/team/application/team_notifier.dart';
 import 'package:on_stage_app/app/features/team/domain/team_request/team_request.dart';
 import 'package:on_stage_app/app/features/team/presentation/team_member_modal.dart';
@@ -57,6 +59,24 @@ class TeamDetailsScreenState extends ConsumerState<TeamDetailsScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              if (ref.watch(permissionServiceProvider).hasAccessToEdit) ...[
+                const SizedBox(height: 16),
+                const Text('Manage'),
+                const SizedBox(height: 8),
+                PreferencesActionTile(
+                  title: 'Groups',
+                  trailingIcon: Icons.keyboard_arrow_right_rounded,
+                  leadingWidget: Icon(
+                    LucideIcons.users_round,
+                    size: 20,
+                    color: context.colorScheme.outline,
+                  ),
+                  height: 54,
+                  onTap: () {
+                    context.goNamed(AppRoute.groups.name);
+                  },
+                ),
+              ],
               const SizedBox(height: 16),
               CustomSettingTile(
                 backgroundColor: context.colorScheme.onSurfaceVariant,

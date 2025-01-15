@@ -13,6 +13,8 @@ class Stager with _$Stager {
     required String? name,
     required StagerStatusEnum? participationStatus,
     required String? userId,
+    String? groupId,
+    String? positionId,
     @JsonKey(includeFromJson: false) Uint8List? profilePicture,
   }) = _Stager;
 

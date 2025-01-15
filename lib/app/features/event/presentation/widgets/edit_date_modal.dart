@@ -12,6 +12,7 @@ import 'package:on_stage_app/app/shared/modal_header.dart';
 import 'package:on_stage_app/app/shared/nested_scroll_modal.dart';
 import 'package:on_stage_app/app/theme/theme.dart';
 import 'package:on_stage_app/app/utils/build_context_extensions.dart';
+import 'package:on_stage_app/logger.dart';
 
 class DuplicateEventModal extends ConsumerStatefulWidget {
   const DuplicateEventModal({
@@ -103,8 +104,8 @@ class EditDateModalState extends ConsumerState<DuplicateEventModal> {
             ),
             const SizedBox(height: 32),
             ContinueButton(
-              text: 'Create',
-              onPressed: _createRehearsal,
+              text: 'Duplicate',
+              onPressed: _duplicateEvent,
               isEnabled: true,
               isLoading: _isLoading,
             ),
@@ -115,33 +116,43 @@ class EditDateModalState extends ConsumerState<DuplicateEventModal> {
     );
   }
 
-  Future<void> _createRehearsal() async {
+  Future<void> _duplicateEvent() async {
     if (!_formKey.currentState!.validate()) {
       return;
     }
+
     setState(() {
       _isLoading = true;
     });
 
-    FocusScope.of(context).unfocus();
+    try {
+      FocusScope.of(context).unfocus();
 
-    if (_selectedDateTime != null) {
+      if (_selectedDateTime == null) {
+        throw Exception('Please select a date and time');
+      }
+
       await ref
           .read(eventNotifierProvider.notifier)
           .duplicateEvent(_selectedDateTime!, _nameController.text);
+
+      final eventId = ref.read(eventNotifierProvider).event?.id;
+      if (eventId == null) {
+        throw Exception('Failed to get new event ID');
+      }
+
+      context
+        ..popDialog()
+        ..goNamed(
+          AppRoute.eventDetails.name,
+          queryParameters: {'eventId': eventId},
+        );
+    } catch (e) {
+      logger.i('Failed to duplicate event: $e');
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
     }
-
-    context
-      ..popDialog()
-      ..pushReplacementNamed(
-        AppRoute.eventDetails.name,
-        queryParameters: {
-          'eventId': ref.watch(eventNotifierProvider).event!.id,
-        },
-      );
-
-    setState(() {
-      _isLoading = false;
-    });
   }
 }

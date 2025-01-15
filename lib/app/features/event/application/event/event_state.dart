@@ -17,10 +17,16 @@ class EventState extends Equatable {
   final bool isLoading;
 
   @override
-  List<Object?> get props => [stagers, rehearsals, event, isLoading];
+  List<Object?> get props => [
+        stagers,
+        rehearsals,
+        event,
+        isLoading,
+      ];
 
   EventState copyWith({
     List<Stager>? stagers,
+    List<Stager>? unassignedStagers,
     List<RehearsalModel>? rehearsals,
     EventModel? event,
     bool? isLoading,

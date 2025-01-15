@@ -9,17 +9,14 @@ import 'package:on_stage_app/app/features/event/application/events/events_notifi
 import 'package:on_stage_app/app/features/event/domain/enums/event_status_enum.dart';
 import 'package:on_stage_app/app/features/event/domain/models/event_model.dart';
 import 'package:on_stage_app/app/features/event/domain/models/rehearsal/rehearsal_model.dart';
-import 'package:on_stage_app/app/features/event/domain/models/stager/create_stager_request.dart';
-import 'package:on_stage_app/app/features/event/domain/models/stager/stager.dart';
-import 'package:on_stage_app/app/features/event/domain/models/stager/stager_request.dart';
+import 'package:on_stage_app/app/features/event/domain/models/stager/edit_stager_request.dart';
 import 'package:on_stage_app/app/features/event/domain/models/stager/stager_status_enum.dart';
 import 'package:on_stage_app/app/features/event/presentation/create_rehearsal_modal.dart';
-import 'package:on_stage_app/app/features/event/presentation/invite_people_to_event_modal.dart';
-import 'package:on_stage_app/app/features/event/presentation/widgets/participant_listing_item.dart';
+import 'package:on_stage_app/app/features/groups/group_event/application/group_event_notifier.dart';
+import 'package:on_stage_app/app/features/groups/group_event/presentation/widgets/groups_event_grid.dart';
 import 'package:on_stage_app/app/features/notifications/presentation/widgets/decline_event_invitation_modal.dart';
 import 'package:on_stage_app/app/features/permission/application/permission_notifier.dart';
 import 'package:on_stage_app/app/features/song/presentation/widgets/preferences/preferences_action_tile.dart';
-import 'package:on_stage_app/app/features/user/application/user_notifier.dart';
 import 'package:on_stage_app/app/router/app_router.dart';
 import 'package:on_stage_app/app/shared/blue_action_button.dart';
 import 'package:on_stage_app/app/shared/continue_button.dart';
@@ -51,22 +48,22 @@ class EventDetailsScreenState extends ConsumerState<EventDetailsScreen>
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await ref.read(eventNotifierProvider.notifier).resetState();
       _init();
     });
   }
 
-  Future<void> _init() async {
-    ref.read(eventNotifierProvider.notifier).resetState();
-    unawaited(
-      ref.read(eventNotifierProvider.notifier).initEventById(widget.eventId),
-    );
+  void _init() {
+    ref.read(eventNotifierProvider.notifier).initEventById(widget.eventId);
+    ref
+        .read(groupEventNotifierProvider.notifier)
+        .getGroupsEvent(widget.eventId);
   }
 
   @override
   Widget build(BuildContext context) {
     final hasEditorRoles = ref.watch(permissionServiceProvider).hasAccessToEdit;
-    final stagers = ref.watch(eventNotifierProvider).stagers;
     final event = ref.watch(
       eventNotifierProvider.select((state) => state.event),
     );
@@ -104,152 +101,149 @@ class EventDetailsScreenState extends ConsumerState<EventDetailsScreen>
                   event?.eventStatus == EventStatus.draft
               ? _buildFloatingButton()
               : null,
-      body: Padding(
-        padding: defaultScreenPadding,
-        child: ListView(
-          children: [
-            _buildEnhancedEventTile(event, stagers),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                Expanded(
-                  child: PreferencesActionTile(
-                    title: 'Schedule',
-                    color: context.colorScheme.primary,
-                    leadingWidget: Icon(
-                      LucideIcons.list_music,
+      body: RefreshIndicator.adaptive(
+        onRefresh: () async {
+          _init();
+        },
+        child: Padding(
+          padding: defaultScreenPadding,
+          child: ListView(
+            children: [
+              _buildEnhancedEventTile(event),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: PreferencesActionTile(
+                      title: 'Schedule',
                       color: context.colorScheme.primary,
+                      leadingWidget: Icon(
+                        LucideIcons.list_music,
+                        color: context.colorScheme.primary,
+                      ),
+                      height: 54,
+                      onTap: () {
+                        context.pushNamed(
+                          AppRoute.addEventSongs.name,
+                          queryParameters: {
+                            'eventId': widget.eventId,
+                          },
+                        );
+                      },
                     ),
-                    height: 54,
-                    onTap: () {
-                      context.pushNamed(
-                        AppRoute.addEventSongs.name,
-                        queryParameters: {
-                          'eventId': widget.eventId,
-                        },
-                      );
-                    },
                   ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: PreferencesActionTile(
-                    title: 'Start Event',
-                    color: Colors.white,
-                    backgroundColor: const Color(0xFF40A54A),
-                    leadingWidget: const Icon(
-                      LucideIcons.circle_play,
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: PreferencesActionTile(
+                      title: 'Start Event',
                       color: Colors.white,
+                      backgroundColor: context.colorScheme.primary,
+                      overlayColor: Colors.white.withOpacity(0.1),
+                      leadingWidget: const Icon(
+                        LucideIcons.circle_play,
+                        color: Colors.white,
+                      ),
+                      height: 54,
+                      onTap: () {
+                        context.pushNamed(
+                          AppRoute.songDetailsWithPages.name,
+                          queryParameters: {
+                            'eventId': widget.eventId,
+                          },
+                        );
+                      },
                     ),
-                    height: 54,
-                    onTap: () {
-                      context.pushNamed(
-                        AppRoute.songDetailsWithPages.name,
-                        queryParameters: {
-                          'eventId': widget.eventId,
-                        },
-                      );
-                    },
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: Insets.medium),
-            Text(
-              'Rehearsals',
-              style: context.textTheme.titleSmall,
-            ),
-            if (rehearsals.isNotEmpty)
-              ...rehearsals.asMap().entries.map(
-                (entry) {
-                  final rehearsal = entry.value;
-
-                  return RehearsalTile(
-                    key: ValueKey(rehearsal.id),
-                    onDelete: () {
-                      ref
-                          .read(eventNotifierProvider.notifier)
-                          .deleteRehearsal(rehearsal.id!);
-
-                      setState(() {
-                        rehearsals.removeAt(entry.key);
-                      });
-                    },
-                    title: rehearsal.name ?? '',
-                    dateTime: rehearsal.dateTime ?? DateTime.now(),
-                    onTap: () {
-                      CreateRehearsalModal.show(
-                        enabled: false,
-                        context: context,
-                        rehearsal: rehearsal,
-                        onRehearsalCreated: (RehearsalModel rehearsal) {
-                          ref
-                              .read(eventNotifierProvider.notifier)
-                              .updateRehearsal(rehearsal);
-                        },
-                      );
-                    },
-                  );
-                },
-              )
-            else if (!hasEditorRoles)
-              Container(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: Text(
-                  'No rehearsals added',
-                  style: context.textTheme.titleSmall!.copyWith(
-                    color: context.colorScheme.outline,
-                  ),
-                ),
+                ],
               ),
-            if (hasEditorRoles) ...[
-              const SizedBox(height: Insets.extraSmall),
-              _buildCreateRehearsalButton(),
-            ],
-            const SizedBox(height: Insets.medium),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Participants',
-                  style: context.textTheme.titleSmall,
-                ),
-                Text(
-                  ref
-                      .watch(eventControllerProvider.notifier)
-                      .getAcceptedInviteesLabel(),
-                  style: context.textTheme.bodyMedium!.copyWith(
-                    color: context.colorScheme.outline,
-                  ),
-                ),
-              ],
-            ),
-            if (stagers.isNotEmpty) ...[
-              const SizedBox(height: Insets.smallNormal),
-              _buildParticipantsList(),
-            ] else if (!hasEditorRoles)
-              Container(
-                padding: const EdgeInsets.only(top: 12),
-                child: Text(
-                  'No rehearsals added',
-                  style: context.textTheme.titleSmall!.copyWith(
-                    color: context.colorScheme.outline,
-                  ),
-                ),
+              const SizedBox(height: Insets.medium),
+              Text(
+                'Rehearsals',
+                style: context.textTheme.titleSmall,
               ),
-            if (hasEditorRoles) ...[
-              const SizedBox(height: Insets.smallNormal),
-              _buildInvitePeopleButton(),
+              const SizedBox(height: 6),
+              if (rehearsals.isNotEmpty)
+                ...rehearsals.asMap().entries.map(
+                  (entry) {
+                    final rehearsal = entry.value;
+
+                    return RehearsalTile(
+                      key: ValueKey(rehearsal.id),
+                      onDelete: () {
+                        ref
+                            .read(eventNotifierProvider.notifier)
+                            .deleteRehearsal(rehearsal.id!);
+
+                        setState(() {
+                          rehearsals.removeAt(entry.key);
+                        });
+                      },
+                      title: rehearsal.name ?? '',
+                      dateTime: rehearsal.dateTime ?? DateTime.now(),
+                      onTap: () {
+                        CreateRehearsalModal.show(
+                          enabled: false,
+                          context: context,
+                          rehearsal: rehearsal,
+                          onRehearsalCreated: (RehearsalModel rehearsal) {
+                            ref
+                                .read(eventNotifierProvider.notifier)
+                                .updateRehearsal(rehearsal);
+                          },
+                        );
+                      },
+                    );
+                  },
+                )
+              else if (!hasEditorRoles)
+                Container(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: Text(
+                    'No rehearsals added',
+                    style: context.textTheme.titleSmall!.copyWith(
+                      color: context.colorScheme.outline,
+                    ),
+                  ),
+                ),
+              if (hasEditorRoles) ...[
+                const SizedBox(height: 6),
+                _buildCreateRehearsalButton(),
+              ],
+              const SizedBox(height: 16),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Participants',
+                    style: context.textTheme.titleSmall,
+                  ),
+                  Text(
+                    ref
+                        .watch(eventControllerProvider.notifier)
+                        .getAcceptedInviteesLabel(),
+                    style: context.textTheme.bodyMedium!.copyWith(
+                      color: context.colorScheme.outline,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              GroupsEventGrid(
+                eventId: widget.eventId,
+              ),
+              if (hasEditorRoles) ...[
+                const SizedBox(height: Insets.smallNormal),
+              ],
+              const SizedBox(height: 120),
             ],
-            const SizedBox(height: 120),
-          ],
+          ),
         ),
       ),
     );
   }
 
   void _onDeclineInvitation(BuildContext context) {
-    const stagerRequest = StagerRequest(
+    const stagerRequest = EditStagerRequest(
       participationStatus: StagerStatusEnum.DECLINED,
     );
     ref.read(eventNotifierProvider.notifier).updateStager(stagerRequest);
@@ -258,7 +252,7 @@ class EventDetailsScreenState extends ConsumerState<EventDetailsScreen>
       ..pop();
   }
 
-  Widget _buildEnhancedEventTile(EventModel? event, List<Stager> stagers) {
+  Widget _buildEnhancedEventTile(EventModel? event) {
     return SizedBox(
       height: 174,
       child: EventTileEnhanced(
@@ -266,9 +260,9 @@ class EventDetailsScreenState extends ConsumerState<EventDetailsScreen>
         locationName: event?.location ?? '',
         dateTime: event?.dateTime ?? DateTime.now(),
         onTap: () {},
-        participantsProfileBytes: stagers.map((e) => e.profilePicture).toList(),
-        participantsCount: stagers.length,
-        participantsName: stagers.isNotEmpty ? stagers[0].name ?? '' : '',
+        participantsProfileBytes: [],
+        participantsCount: 0,
+        participantsName: '',
       ),
     );
   }
@@ -354,44 +348,13 @@ class EventDetailsScreenState extends ConsumerState<EventDetailsScreen>
     );
   }
 
-  Widget _buildParticipantsList() {
-    final stagers = ref.watch(eventNotifierProvider).stagers;
-    final currentUserId = ref.watch(userNotifierProvider).currentUser?.id;
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 6),
-      decoration: BoxDecoration(
-        color: context.colorScheme.onSurfaceVariant,
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          ...stagers.map(
-            (stager) => ParticipantListingItem(
-              userId: stager.userId ?? '',
-              canEdit: ref.watch(permissionServiceProvider).hasAccessToEdit &&
-                  stager.userId != currentUserId,
-              name: stager.name ?? '',
-              photo: stager.profilePicture,
-              status: stager.participationStatus,
-              onDelete: () {
-                ref
-                    .read(eventNotifierProvider.notifier)
-                    .removeStagerFromEvent(stager.id);
-              },
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildCreateRehearsalButton() {
     return EventActionButton(
       onTap: () {
         CreateRehearsalModal.show(
           context: context,
           onRehearsalCreated: (RehearsalModel rehearsal) {
+            print('im here');
             ref.read(eventNotifierProvider.notifier).addRehearsal(rehearsal);
           },
         );
@@ -399,35 +362,5 @@ class EventDetailsScreenState extends ConsumerState<EventDetailsScreen>
       text: 'Create new Rehearsal',
       icon: Icons.add,
     );
-  }
-
-  Widget _buildInvitePeopleButton() {
-    return EventActionButton(
-      onTap: () {
-        if (mounted) {
-          InvitePeopleToEventModal.show(
-            context: context,
-            onPressed: _addStagersToEvent,
-            eventId: widget.eventId,
-          );
-        }
-      },
-      text: 'Invite People to Event',
-      icon: Icons.add,
-    );
-  }
-
-  void _addStagersToEvent() {
-    ref.read(eventControllerProvider.notifier).resetAddedMembersToCache();
-    ref.read(eventControllerProvider.notifier).addMembersToCache();
-    ref.read(eventControllerProvider.notifier).resetSelectedMembersFromList();
-    final addedTeamMembers = ref.read(eventControllerProvider).addedMembers;
-
-    ref.read(eventNotifierProvider.notifier).addStagersToEvent(
-          CreateStagersRequest(
-            eventId: widget.eventId,
-            teamMemberIds: addedTeamMembers.map((e) => e.id).toList(),
-          ),
-        );
   }
 }

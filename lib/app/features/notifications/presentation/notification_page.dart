@@ -40,9 +40,8 @@ class NotificationPageState extends ConsumerState<NotificationPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: StageAppBar(
+      appBar: const StageAppBar(
         isBackButtonVisible: true,
-        onBackButtonPressed: () {},
         title: 'Notifications',
       ),
       body: RefreshIndicator.adaptive(

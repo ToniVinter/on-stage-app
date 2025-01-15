@@ -29,7 +29,9 @@ class AddSongsModal extends ConsumerStatefulWidget {
       constraints: BoxConstraints(
         maxHeight: MediaQuery.of(context).size.height * 0.95,
         minHeight: MediaQuery.of(context).size.height * 0.95,
-        maxWidth: MediaQuery.of(context).size.width,
+        maxWidth: context.isLargeScreen
+            ? context.screenSize.width * 0.5
+            : double.infinity,
       ),
       context: context,
       builder: (context) => NestedScrollModal(

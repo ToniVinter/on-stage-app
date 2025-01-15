@@ -23,7 +23,6 @@ class TeamNotifier extends _$TeamNotifier {
   @override
   TeamState build() {
     final dio = ref.watch(dioProvider);
-
     _teamRepository = TeamRepository(dio);
 
     return const TeamState();

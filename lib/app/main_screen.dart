@@ -23,6 +23,7 @@ import 'package:on_stage_app/app/features/user/application/user_notifier.dart';
 import 'package:on_stage_app/app/features/user/domain/enums/permission_type.dart';
 import 'package:on_stage_app/app/features/user/presentation/profile_screen.dart';
 import 'package:on_stage_app/app/features/user_settings/application/user_settings_notifier.dart';
+import 'package:on_stage_app/app/shared/adaptive_event_pop_dialog.dart';
 import 'package:on_stage_app/app/shared/custom_side_navigation.dart';
 import 'package:on_stage_app/app/socket_io_service/socket_io_service.dart';
 import 'package:on_stage_app/app/utils/build_context_extensions.dart';
@@ -50,7 +51,19 @@ class _MainScreenState extends ConsumerState<MainScreen> {
 
   bool _isNavigationExpanded = false;
 
-  void _onChangedScreen(int index) {
+  Future<void> _onChangedScreen(int index) async {
+    final currentPath =
+        widget.navigationShell.shellRouteContext.routerState.fullPath;
+    final isAddEventScreen = currentPath == '/events/addEvent';
+    final isNavigatingToEvents = index == 2;
+
+    if (isAddEventScreen && isNavigatingToEvents) {
+      if (!mounted) return;
+
+      final shouldPop = await AdaptiveEventPopDialog.show(context: context);
+      if (!(shouldPop ?? false) || !mounted) return;
+    }
+
     widget.navigationShell.goBranch(
       index,
       initialLocation: index == widget.navigationShell.currentIndex,
@@ -96,6 +109,7 @@ class _MainScreenState extends ConsumerState<MainScreen> {
   bool _shouldHideBottomNav(String location) {
     return [
       '/events/songDetailsWithPages',
+      '/events/addEvent',
     ].any((route) => location.startsWith(route));
   }
 

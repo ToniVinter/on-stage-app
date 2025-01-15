@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:on_stage_app/app/features/event/application/event/controller/event_controller.dart';
 import 'package:on_stage_app/app/features/event/application/event/event_notifier.dart';
 import 'package:on_stage_app/app/features/event/domain/models/rehearsal/rehearsal_model.dart';
 import 'package:on_stage_app/app/features/event/presentation/custom_text_field.dart';
@@ -133,6 +132,7 @@ class CreateRehearsalModalState extends ConsumerState<CreateRehearsalModal> {
   }
 
   void _createRehearsal() {
+    final currentEvent = ref.watch(eventNotifierProvider).event;
     setState(() {
       _dateTimeError = null;
     });
@@ -141,7 +141,9 @@ class CreateRehearsalModalState extends ConsumerState<CreateRehearsalModal> {
         _dateTimeError = 'Please select a valid date and time';
       });
     }
-    if (!_formKey.currentState!.validate() || _dateTimeError != null) {
+    if (!_formKey.currentState!.validate() ||
+        _dateTimeError != null ||
+        currentEvent?.id == null) {
       return;
     }
 
@@ -151,13 +153,11 @@ class CreateRehearsalModalState extends ConsumerState<CreateRehearsalModal> {
       id: widget.rehearsal?.id,
       name: _rehearsalNameController.text,
       dateTime: _selectedDateTime,
-      eventId:
-          widget.rehearsal?.id ?? ref.read(eventNotifierProvider).event?.id!,
+      eventId: currentEvent!.id,
       location: '',
     );
 
     widget.onRehearsalCreated?.call(rehearsal);
-    ref.read(eventControllerProvider.notifier).addRehearsal(rehearsal);
     context.popDialog();
   }
 

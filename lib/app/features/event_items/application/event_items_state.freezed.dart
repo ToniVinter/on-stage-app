@@ -18,7 +18,6 @@ final _privateConstructorUsedError = UnsupportedError(
 mixin _$EventItemsState {
   bool get isLoading => throw _privateConstructorUsedError;
   List<EventItem> get eventItems => throw _privateConstructorUsedError;
-
   List<SongModelV2> get songsFromEvent => throw _privateConstructorUsedError;
   int get currentIndex => throw _privateConstructorUsedError;
 
@@ -161,7 +160,6 @@ class _$EventItemsStateImpl implements _EventItemsState {
   }
 
   final List<SongModelV2> _songsFromEvent;
-
   @override
   @JsonKey()
   List<SongModelV2> get songsFromEvent {
@@ -223,7 +221,6 @@ abstract class _EventItemsState implements EventItemsState {
   bool get isLoading;
   @override
   List<EventItem> get eventItems;
-
   @override
   List<SongModelV2> get songsFromEvent;
   @override

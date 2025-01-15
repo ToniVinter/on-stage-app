@@ -174,7 +174,7 @@ const darkColorScheme = ColorScheme(
   secondaryContainer: Color(0xFFF06B6B),
   onSecondaryContainer: Color(0xFFDDE1FF),
   onSecondaryFixed: Color(0xFFF4F4F4),
-  tertiary: Color(0xFF0D5C73),
+  tertiary: Color(0xFF364884),
   onTertiary: Color(0xFF492535),
   tertiaryContainer: Color(0xFFE1EBF6),
   onTertiaryContainer: Color(0xFFFFD9E5),

@@ -58,6 +58,7 @@ class AddSongSecondStepContentState
             return;
           }
           ref.read(songNotifierProvider.notifier).getSongById(songId);
+          context.pop();
         },
       ),
       body: EditorTabSwitch(tabController: _tabController),

@@ -35,7 +35,7 @@ class ModalHeader extends StatelessWidget {
               borderRadius: BorderRadius.circular(5),
             ),
           ),
-          const SizedBox(height: Insets.normal),
+          const SizedBox(height: 16),
           Padding(
             padding: const EdgeInsets.only(left: 12),
             child: Row(
@@ -51,27 +51,28 @@ class ModalHeader extends StatelessWidget {
                 ),
                 SizedBox(
                   width: 80,
-                  child: InkWell(
-                    onTap: () {
+                  child: IconButton(
+                    iconSize: 18,
+                    onPressed: () {
                       context.popDialog();
                     },
-                    child: Center(
-                      child: Container(
-                        width: 30,
-                        height: 30,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          border: Border.all(
+                    style: ButtonStyle(
+                      padding: WidgetStateProperty.all(
+                        EdgeInsets.zero,
+                      ),
+                      visualDensity: VisualDensity.compact,
+                      shape: WidgetStateProperty.all(
+                        CircleBorder(
+                          side: BorderSide(
                             color: context.colorScheme.surfaceContainer
                                 .withOpacity(0.3),
                           ),
                         ),
-                        child: Icon(
-                          LucideIcons.x,
-                          size: 18,
-                          color: context.colorScheme.outline,
-                        ),
                       ),
+                    ),
+                    icon: Icon(
+                      LucideIcons.x,
+                      color: context.colorScheme.outline,
                     ),
                   ),
                 ),

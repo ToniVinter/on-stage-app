@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:on_stage_app/app/features/event/application/event/controller/event_controller.dart';
 import 'package:on_stage_app/app/features/search/presentation/stage_search_bar.dart';
 import 'package:on_stage_app/app/features/team_member/application/team_members_notifier.dart';
 import 'package:on_stage_app/app/features/team_member/domain/team_member.dart';
@@ -11,25 +10,25 @@ import 'package:on_stage_app/app/shared/placeholder_image_widget.dart';
 import 'package:on_stage_app/app/utils/build_context_extensions.dart';
 import 'package:shimmer/shimmer.dart';
 
-class InvitePeopleToEventModal extends ConsumerStatefulWidget {
-  const InvitePeopleToEventModal({
+class UninvitedPeopleModal extends ConsumerStatefulWidget {
+  const UninvitedPeopleModal({
     required this.eventId,
-    this.onPressed,
+    required this.positionName,
     super.key,
   });
 
   final String? eventId;
-  final void Function()? onPressed;
+  final String positionName;
 
   @override
-  AddParticipantsModalState createState() => AddParticipantsModalState();
+  UninvitedPeopleModalState createState() => UninvitedPeopleModalState();
 
-  static void show({
+  static Future<List<String>?> show({
     required BuildContext context,
-    String? eventId,
-    void Function()? onPressed,
+    required String positionName,
+    required String eventId,
   }) {
-    showModalBottomSheet<Widget>(
+    return showModalBottomSheet<List<String>>(
       useRootNavigator: true,
       isScrollControlled: true,
       backgroundColor: context.colorScheme.surfaceContainerHigh,
@@ -41,64 +40,48 @@ class InvitePeopleToEventModal extends ConsumerStatefulWidget {
             : double.infinity,
       ),
       context: context,
-      builder: (context) => NestedScrollModal(
-        buildFooter: () => SizedBox(
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
-            child: Consumer(
-              builder: (context, ref, _) {
-                return ContinueButton(
-                  text: 'Invite People to Event',
-                  onPressed: () {
-                    _onPressed(ref, onPressed ?? () {});
-                    context.popDialog();
-                  },
-                  isEnabled: ref
-                      .watch(eventControllerProvider)
-                      .selectedTeamMembers
-                      .isNotEmpty,
-                );
-              },
-            ),
-          ),
-        ),
-        buildHeader: () => const ModalHeader(title: 'Add People'),
-        headerHeight: () => 64,
-        footerHeight: () => 64,
-        buildContent: () => InvitePeopleToEventModal(
-          eventId: eventId,
-        ),
+      builder: (context) => UninvitedPeopleModal(
+        eventId: eventId,
+        positionName: positionName,
       ),
     );
   }
-
-  static void _onPressed(WidgetRef ref, void Function() onPressed) {
-    onPressed.call();
-  }
 }
 
-class AddParticipantsModalState
-    extends ConsumerState<InvitePeopleToEventModal> {
+class UninvitedPeopleModalState extends ConsumerState<UninvitedPeopleModal> {
   final TextEditingController _searchController = TextEditingController();
   List<TeamMember> _searchedParticipants = [];
   List<TeamMember> _allParticipants = [];
   final FocusNode _searchFocusNode = FocusNode();
-
-  bool _areParticipantsLoading = false;
+  List<String> selectedTeamMemberIds = [];
+  final bool _areParticipantsLoading = false;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _requestParticipants();
+      _getUninvitedTeamMembers();
     });
     _searchController.addListener(_onSearchChanged);
   }
 
+  Future<void> _getUninvitedTeamMembers() async {
+    await ref
+        .read(teamMembersNotifierProvider.notifier)
+        .getUninvitedTeamMembers(eventId: widget.eventId);
+
+    setState(() {
+      _allParticipants =
+          ref.watch(teamMembersNotifierProvider).uninvitedTeamMembers;
+      _searchedParticipants = _allParticipants;
+    });
+  }
+
   @override
   void dispose() {
-    _searchController.removeListener(_onSearchChanged);
-    _searchController.dispose();
+    _searchController
+      ..removeListener(_onSearchChanged)
+      ..dispose();
     super.dispose();
   }
 
@@ -116,40 +99,6 @@ class AddParticipantsModalState
     });
   }
 
-  Future<void> _requestParticipants() async {
-    setState(() {
-      _areParticipantsLoading = true;
-    });
-
-    await ref
-        .read(teamMembersNotifierProvider.notifier)
-        .getUninvitedTeamMembers(eventId: widget.eventId);
-
-    _setParticipants();
-    setState(() {
-      _areParticipantsLoading = false;
-    });
-  }
-
-  void _setParticipants() {
-    if (widget.eventId != null) {
-      _allParticipants =
-          ref.watch(teamMembersNotifierProvider).uninvitedTeamMembers;
-    } else {
-      _allParticipants = ref
-          .watch(teamMembersNotifierProvider)
-          .uninvitedTeamMembers
-          .where(
-            (member) => !ref
-                .watch(eventControllerProvider)
-                .addedMembers
-                .any((added) => added.id == member.id),
-          )
-          .toList();
-    }
-    _searchedParticipants = _allParticipants;
-  }
-
   void _clearSearch() {
     _searchController.clear();
     setState(() {
@@ -157,27 +106,19 @@ class AddParticipantsModalState
     });
   }
 
-  bool _isItemChecked(int index) {
-    final currentParticipant = _searchedParticipants.elementAt(index);
-    final addedMemberIds = ref
-        .watch(eventControllerProvider)
-        .selectedTeamMembers
-        .map((member) => member.id)
-        .toSet();
-
-    return addedMemberIds.contains(currentParticipant.id);
-  }
-
   Widget _buildSearchBar() {
-    return StageSearchBar(
-      focusNode: _searchFocusNode,
-      controller: _searchController,
-      onClosed: _clearSearch,
-      onChanged: (value) {
-        if (value.isEmpty) {
-          _clearSearch();
-        }
-      },
+    return Padding(
+      padding: const EdgeInsets.only(top: 12),
+      child: StageSearchBar(
+        focusNode: _searchFocusNode,
+        controller: _searchController,
+        onClosed: _clearSearch,
+        onChanged: (value) {
+          if (value.isEmpty) {
+            _clearSearch();
+          }
+        },
+      ),
     );
   }
 
@@ -210,11 +151,11 @@ class AddParticipantsModalState
 
   Widget _buildTile(int index) {
     return Container(
-      height: 48,
-      margin: const EdgeInsets.only(bottom: 8),
+      height: 54,
+      margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
         color: context.colorScheme.onSurfaceVariant,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(10),
         border: Border.all(
           color: _isItemChecked(index)
               ? context.colorScheme.primary
@@ -281,58 +222,84 @@ class AddParticipantsModalState
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const SizedBox(height: 16),
-          _buildSearchBar(),
-          const SizedBox(height: 12),
-          if (_areParticipantsLoading)
-            _buildShimmerLoading()
-          else if (_searchedParticipants.isEmpty)
-            Center(
-              child: Padding(
-                padding: const EdgeInsets.only(top: 24),
-                child: Text(
-                  'No members found',
-                  style: context.textTheme.bodyLarge,
+    return NestedScrollModal(
+      buildHeader: () => ModalHeader(title: widget.positionName),
+      headerHeight: () => 64,
+      footerHeight: () => 64,
+      buildFooter: () => Padding(
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 36),
+        child: ClipRect(
+          child: ContinueButton(
+            text: 'Invite People to Event',
+            onPressed: () {
+              context.popDialog(selectedTeamMemberIds);
+            },
+            isEnabled: selectedTeamMemberIds.isNotEmpty,
+          ),
+        ),
+      ),
+      buildContent: () => Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: 16),
+            _buildSearchBar(),
+            const SizedBox(height: 12),
+            if (_areParticipantsLoading)
+              _buildShimmerLoading()
+            else if (_searchedParticipants.isEmpty)
+              Center(
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 24),
+                  child: Text(
+                    'No members found',
+                    style: context.textTheme.bodyLarge,
+                  ),
+                ),
+              )
+            else
+              Padding(
+                padding: const EdgeInsets.only(bottom: 42),
+                child: ListView.builder(
+                  physics: const NeverScrollableScrollPhysics(),
+                  shrinkWrap: true,
+                  itemCount: _searchedParticipants.length,
+                  itemBuilder: (context, index) {
+                    return InkWell(
+                      onTap: () {
+                        _searchFocusNode.unfocus();
+                        _modifyInvitedMembers(index);
+                      },
+                      child: _buildTile(index),
+                    );
+                  },
                 ),
               ),
-            )
-          else
-            Padding(
-              padding: const EdgeInsets.only(bottom: 42),
-              child: ListView.builder(
-                physics: const NeverScrollableScrollPhysics(),
-                shrinkWrap: true,
-                itemCount: _searchedParticipants.length,
-                itemBuilder: (context, index) {
-                  return InkWell(
-                    onTap: () {
-                      _searchFocusNode.unfocus();
-                      if (_isItemChecked(index)) {
-                        ref
-                            .read(eventControllerProvider.notifier)
-                            .unSelectTeamMember(
-                              _searchedParticipants.elementAt(index),
-                            );
-                      } else {
-                        ref
-                            .read(eventControllerProvider.notifier)
-                            .selectTeamMember(
-                              _searchedParticipants.elementAt(index),
-                            );
-                      }
-                    },
-                    child: _buildTile(index),
-                  );
-                },
-              ),
-            ),
-        ],
+          ],
+        ),
       ),
     );
+  }
+
+  void _modifyInvitedMembers(int index) {
+    if (_isItemChecked(index)) {
+      setState(() {
+        selectedTeamMemberIds.remove(
+          _searchedParticipants.elementAt(index).id,
+        );
+      });
+    } else {
+      setState(() {
+        selectedTeamMemberIds.add(
+          _searchedParticipants.elementAt(index).id,
+        );
+      });
+    }
+  }
+
+  bool _isItemChecked(int index) {
+    return selectedTeamMemberIds
+        .contains(_searchedParticipants.elementAt(index).id);
   }
 }

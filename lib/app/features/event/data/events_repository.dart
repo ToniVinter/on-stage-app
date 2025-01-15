@@ -1,5 +1,5 @@
 import 'package:dio/dio.dart';
-import 'package:on_stage_app/app/features/event/domain/models/create_event_model.dart';
+import 'package:on_stage_app/app/features/event/domain/models/create_update_event_model.dart';
 import 'package:on_stage_app/app/features/event/domain/models/duplicate_event_request.dart';
 import 'package:on_stage_app/app/features/event/domain/models/event_items/event_item.dart';
 import 'package:on_stage_app/app/features/event/domain/models/event_items/event_items_request.dart';
@@ -7,9 +7,9 @@ import 'package:on_stage_app/app/features/event/domain/models/event_model.dart';
 import 'package:on_stage_app/app/features/event/domain/models/events_filter.dart';
 import 'package:on_stage_app/app/features/event/domain/models/events_response.dart';
 import 'package:on_stage_app/app/features/event/domain/models/rehearsal/rehearsal_model.dart';
-import 'package:on_stage_app/app/features/event/domain/models/stager/create_stager_request.dart';
+import 'package:on_stage_app/app/features/event/domain/models/stager/create_all_stagers_request.dart';
+import 'package:on_stage_app/app/features/event/domain/models/stager/edit_stager_request.dart';
 import 'package:on_stage_app/app/features/event/domain/models/stager/stager.dart';
-import 'package:on_stage_app/app/features/event/domain/models/stager/stager_request.dart';
 import 'package:on_stage_app/app/features/event/domain/models/upcoming_event/upcoming_event_model.dart';
 import 'package:on_stage_app/app/utils/api.dart';
 import 'package:retrofit/retrofit.dart';
@@ -63,22 +63,14 @@ abstract class EventsRepository {
   );
 
   @POST(API.events)
-  Future<EventModel> createEvent(@Body() CreateEventModel event);
-
-  @POST(API.stagers)
-  Future<List<Stager>> addStagerToEvent(
-    @Body() CreateStagersRequest createStagerRequest,
-  );
-
-  @DELETE(API.stagersById)
-  Future<String> removeStagerFromEvent(
-    @Path('id') String id,
+  Future<EventModel> createEvent(
+    @Body() CreateUpdateEventModel? event,
   );
 
   @PUT(API.eventById)
   Future<EventModel> updateEvent(
     @Path('id') String eventId,
-    @Body() EventModel event,
+    @Body() CreateUpdateEventModel event,
   );
 
   @POST(API.duplicateEvent)
@@ -92,15 +84,38 @@ abstract class EventsRepository {
     @Path('id') String eventId,
   );
 
+  ///Stagers
+  @GET(API.stagers)
+  Future<List<Stager>> getStagersByGroupAndEvent({
+    @Query('eventId') required String eventId,
+    @Query('groupId') required String groupId,
+  });
+
+  @POST(API.stagers)
+  Future<List<Stager>> addStagerToEvent(
+    @Body() CreateAllStagersRequest createStagerRequest,
+  );
+
+  @DELETE(API.stagersById)
+  Future<String> removeStagerFromEvent(
+    @Path('id') String id,
+  );
+
   @PUT(API.editStagerById)
   Future<void> updateStager(
     @Path('id') String stagerId,
-    @Body() StagerRequest stager,
+    @Body() EditStagerRequest stager,
   );
 
   @GET(API.stagerByEventAndTeamMember)
   Future<Stager> getStagerByEventAndTeamMember(
     @Query('eventId') String eventId,
     @Query('teamMemberId') String teamMemberId,
+  );
+
+  @GET(API.stagers)
+  Future<List<Stager>> getStagersByEventAndPosition(
+    @Query('eventId') String eventId,
+    @Query('positionId') String positionId,
   );
 }

@@ -49,7 +49,7 @@ class FriendsTile extends StatelessWidget {
           children: [
             const ParticipantsOnTile(
               width: 24,
-              participantsProfile: [
+              participantsProfileName: [
                 'assets/images/profile1.png',
                 'assets/images/profile2.png',
                 'assets/images/profile4.png',

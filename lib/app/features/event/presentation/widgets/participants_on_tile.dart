@@ -6,7 +6,7 @@ import 'package:on_stage_app/app/utils/build_context_extensions.dart';
 
 class ParticipantsOnTile extends StatelessWidget {
   const ParticipantsOnTile({
-    this.participantsProfile = const [],
+    this.participantsProfileName = const [],
     this.participantsProfileBytes = const [],
     this.width = 30,
     this.showOverlay = true,
@@ -15,13 +15,13 @@ class ParticipantsOnTile extends StatelessWidget {
     this.textColor,
     this.participantsLength,
     this.participantsName,
+    this.participantsMax,
+    this.useRandomColors = false,
     super.key,
   });
 
-  static const _participantsMax = 2;
-
   final List<Uint8List?> participantsProfileBytes;
-  final List<String> participantsProfile;
+  final List<String> participantsProfileName;
   final double width;
   final bool showOverlay;
   final Color? borderColor;
@@ -29,13 +29,33 @@ class ParticipantsOnTile extends StatelessWidget {
   final int? participantsLength;
   final String? participantsName;
   final Color? textColor;
+  final int? participantsMax;
+  final bool useRandomColors;
+
+  List<Color> get _backgroundColors => const [
+        Color(0xFFD6CACA),
+        Color(0xFFFA8686),
+        Color(0xFF5CF5BA),
+        Color(0xFF0D5C73),
+      ];
+
+  int get _participantsMax => participantsMax ?? 2;
 
   int get _participantsLength => participantsLength ?? 0;
+
   bool get _isMoreThanMax => _participantsLength > _participantsMax;
 
   double get tileWidth {
     final count = _isMoreThanMax ? _participantsMax + 1 : _participantsLength;
     return (count * width) - (count - 1) * 10;
+  }
+
+  Color _getRandomBackgroundColor(BuildContext context, int index) {
+    if (useRandomColors == false) {
+      return backgroundColor ?? context.colorScheme.secondary;
+    }
+    final colorIndex = index % _backgroundColors.length;
+    return _backgroundColors[colorIndex];
   }
 
   @override
@@ -46,9 +66,10 @@ class ParticipantsOnTile extends StatelessWidget {
         'photo': participantsProfileBytes.length > index
             ? participantsProfileBytes[index]
             : null,
-        'name': participantsProfile.length > index
-            ? participantsProfile[index]
+        'name': participantsProfileName.length > index
+            ? participantsProfileName[index]
             : participantsName ?? '',
+        'backgroundColor': _getRandomBackgroundColor(context, index),
       },
     );
 
@@ -71,14 +92,12 @@ class ParticipantsOnTile extends StatelessWidget {
                     photo: participant['photo'] as Uint8List?,
                     name: participant['name']! as String,
                     borderColor: borderColor,
-                    backgroundColor: backgroundColor,
+                    backgroundColor: participant['backgroundColor'] as Color,
                     placeholderColor: textColor,
                   ),
                 ),
               );
             }),
-
-          // Show overlay for additional participants if needed
           if (_isMoreThanMax)
             Positioned(
               left: _participantsMax * (width - 10),
@@ -91,7 +110,10 @@ class ParticipantsOnTile extends StatelessWidget {
                     color: borderColor ?? context.colorScheme.onSurfaceVariant,
                     width: 2,
                   ),
-                  color: backgroundColor ?? context.colorScheme.secondary,
+                  // Use last color from backgroundColors for overflow indicator
+                  color: useRandomColors
+                      ? _backgroundColors.last
+                      : (backgroundColor ?? context.colorScheme.secondary),
                 ),
                 child: Center(
                   child: Text(

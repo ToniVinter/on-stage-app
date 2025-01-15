@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:on_stage_app/app/features/event/application/event/event_notifier.dart';
 import 'package:on_stage_app/app/features/event/application/events/events_notifier.dart';
 import 'package:on_stage_app/app/features/event/presentation/widgets/event_shimmer_list.dart';
 import 'package:on_stage_app/app/features/event/presentation/widgets/events_content.dart';
@@ -136,13 +137,16 @@ class EventsScreenState extends ConsumerState<EventsScreen> {
               ),
             ),
           ),
-          onPressed: () {
+          onPressed: () async {
             if (userSettingsNotifier.isCreateEventTooltipShown == false) {
               _disableTooltip();
             }
 //TODO: implement new method for permission
             if (ref.watch(permissionServiceProvider).canAddEvents) {
-              context.pushNamed(AppRoute.addEvent.name);
+              await ref.read(eventNotifierProvider.notifier).createEmptyEvent();
+              if (mounted) {
+                unawaited(context.pushNamed(AppRoute.addEvent.name));
+              }
             } else {
               PaywallModal.show(
                 context: context,

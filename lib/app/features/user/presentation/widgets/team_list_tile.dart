@@ -29,7 +29,7 @@ class TeamListTile extends StatelessWidget {
           ),
         ),
         trailing: const ParticipantsOnTile(
-          participantsProfile: [
+          participantsProfileName: [
             'assets/images/profile1.png',
             'assets/images/profile2.png',
             'assets/images/profile4.png',

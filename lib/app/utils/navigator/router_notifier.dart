@@ -8,6 +8,7 @@ import 'package:on_stage_app/app/features/event/presentation/add_event_moments_s
 import 'package:on_stage_app/app/features/event/presentation/event_details_screen.dart';
 import 'package:on_stage_app/app/features/event/presentation/event_settings_screen.dart';
 import 'package:on_stage_app/app/features/event/presentation/events_screen.dart';
+import 'package:on_stage_app/app/features/groups/group_template/presentation/groups_screen.dart';
 import 'package:on_stage_app/app/features/home/presentation/home_screen.dart';
 import 'package:on_stage_app/app/features/loading/presentation/loading_screen.dart';
 import 'package:on_stage_app/app/features/login/application/login_notifier.dart';
@@ -369,6 +370,13 @@ class NavigationNotifier extends _$NavigationNotifier {
                         );
                       },
                       routes: [
+                        GoRoute(
+                          name: AppRoute.groups.name,
+                          path: 'groups',
+                          builder: (context, state) {
+                            return const GroupsScreen();
+                          },
+                        ),
                         GoRoute(
                           name: AppRoute.addTeamMember.name,
                           path: 'addTeamMember',

@@ -4,14 +4,15 @@ import 'package:on_stage_app/app/features/event/application/event/controller/eve
 import 'package:on_stage_app/app/features/event/application/event/event_notifier.dart';
 import 'package:on_stage_app/app/features/event/presentation/create_rehearsal_modal.dart';
 import 'package:on_stage_app/app/features/event/presentation/custom_text_field.dart';
-import 'package:on_stage_app/app/features/event/presentation/invite_people_to_event_modal.dart';
 import 'package:on_stage_app/app/features/event/presentation/widgets/date_time_text_field.dart';
-import 'package:on_stage_app/app/features/event/presentation/widgets/participants_list_widget.dart';
+import 'package:on_stage_app/app/features/groups/group_event/application/group_event_notifier.dart';
+import 'package:on_stage_app/app/features/groups/group_event/presentation/widgets/groups_event_grid.dart';
 import 'package:on_stage_app/app/features/permission/application/permission_notifier.dart';
 import 'package:on_stage_app/app/features/reminder/application/reminder_notifier.dart';
 import 'package:on_stage_app/app/features/reminder/presentation/set_reminder_modal.dart';
 import 'package:on_stage_app/app/features/user/domain/enums/permission_type.dart';
 import 'package:on_stage_app/app/router/app_router.dart';
+import 'package:on_stage_app/app/shared/adaptive_event_pop_dialog.dart';
 import 'package:on_stage_app/app/shared/blue_action_button.dart';
 import 'package:on_stage_app/app/shared/continue_button.dart';
 import 'package:on_stage_app/app/shared/dash_divider.dart';
@@ -21,6 +22,7 @@ import 'package:on_stage_app/app/shared/stage_app_bar.dart';
 import 'package:on_stage_app/app/theme/theme.dart';
 import 'package:on_stage_app/app/utils/build_context_extensions.dart';
 import 'package:on_stage_app/logger.dart';
+import 'package:shimmer/shimmer.dart';
 
 class AddEventDetailsScreen extends ConsumerStatefulWidget {
   const AddEventDetailsScreen({super.key});
@@ -39,17 +41,29 @@ class AddEventDetailsScreenState extends ConsumerState<AddEventDetailsScreen> {
 
   @override
   void initState() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final eventId = ref.watch(eventNotifierProvider).event?.id;
+      print('Event ID: $eventId');
+      if (eventId != null) {
+        ref.read(groupEventNotifierProvider.notifier).getGroupsEvent(eventId);
+      }
+    });
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
+    final eventId = ref.watch(eventNotifierProvider).event?.id;
+
+    if (eventId == null) {
+      return const SizedBox();
+    }
     return Scaffold(
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       floatingActionButton: Padding(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.symmetric(horizontal: 12),
         child: ContinueButton(
-          text: 'Create Draft Event',
+          text: 'Create Event',
           onPressed: () {
             _createDraftEvent(context);
           },
@@ -58,6 +72,15 @@ class AddEventDetailsScreenState extends ConsumerState<AddEventDetailsScreen> {
       ),
       appBar: StageAppBar(
         isBackButtonVisible: true,
+        onBackButtonPressed: () async {
+          final shouldPop = await AdaptiveEventPopDialog.show(
+            context: context,
+          );
+
+          if (shouldPop ?? true && mounted) {
+            context.pop();
+          }
+        },
         title: 'Create Event',
         trailing: SettingsTrailingAppBarButton(
           iconPath: 'assets/icons/bell.svg',
@@ -108,15 +131,10 @@ class AddEventDetailsScreenState extends ConsumerState<AddEventDetailsScreen> {
                 'Participants',
                 style: context.textTheme.titleSmall,
               ),
-              if (ref
-                  .watch(eventControllerProvider)
-                  .addedMembers
-                  .isNotEmpty) ...[
-                const SizedBox(height: Insets.smallNormal),
-                const ParticipantsList(),
-              ],
               const SizedBox(height: Insets.smallNormal),
-              _buildInvitePeopleButton(),
+              GroupsEventGrid(
+                eventId: eventId,
+              ),
               const Padding(
                 padding: EdgeInsets.symmetric(vertical: 24),
                 child: DashedLineDivider(),
@@ -126,7 +144,7 @@ class AddEventDetailsScreenState extends ConsumerState<AddEventDetailsScreen> {
                 style: context.textTheme.titleSmall,
               ),
               const SizedBox(height: Insets.smallNormal),
-              ...ref.watch(eventControllerProvider).rehearsals.map(
+              ...ref.watch(eventNotifierProvider).rehearsals.map(
                 (rehearsal) {
                   return RehearsalTile(
                     title: rehearsal.name ?? '',
@@ -139,6 +157,23 @@ class AddEventDetailsScreenState extends ConsumerState<AddEventDetailsScreen> {
               _buildCreateRehearsalButton(),
               const SizedBox(height: 120),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildShimmerGroupCard() {
+    return SizedBox(
+      height: 200,
+      width: 200,
+      child: Shimmer.fromColors(
+        baseColor: context.colorScheme.onSurfaceVariant.withOpacity(0.3),
+        highlightColor: context.colorScheme.onSurfaceVariant,
+        child: Container(
+          decoration: BoxDecoration(
+            color: context.colorScheme.onSurfaceVariant,
+            borderRadius: BorderRadius.circular(8),
           ),
         ),
       ),
@@ -159,7 +194,7 @@ class AddEventDetailsScreenState extends ConsumerState<AddEventDetailsScreen> {
     }
 
     if (_isFormValid()) {
-      await ref.read(eventNotifierProvider.notifier).createEvent();
+      await ref.read(eventNotifierProvider.notifier).updateEventOnCreate();
 
       final eventId = ref.watch(eventNotifierProvider).event?.id;
       if (eventId == null) {
@@ -201,29 +236,12 @@ class AddEventDetailsScreenState extends ConsumerState<AddEventDetailsScreen> {
       onTap: () {
         CreateRehearsalModal.show(
           context: context,
+          onRehearsalCreated: (rehearsal) {
+            ref.read(eventNotifierProvider.notifier).addRehearsal(rehearsal);
+          },
         );
       },
       text: 'Create new Rehearsal',
-      icon: Icons.add,
-    );
-  }
-
-  Widget _buildInvitePeopleButton() {
-    return EventActionButton(
-      onTap: () {
-        if (mounted) {
-          InvitePeopleToEventModal.show(
-            context: context,
-            onPressed: () {
-              ref.read(eventControllerProvider.notifier).addMembersToCache();
-              ref
-                  .read(eventControllerProvider.notifier)
-                  .resetSelectedMembersFromList();
-            },
-          );
-        }
-      },
-      text: 'Invite People',
       icon: Icons.add,
     );
   }

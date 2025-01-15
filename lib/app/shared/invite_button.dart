@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:on_stage_app/app/utils/build_context_extensions.dart';
 
 class InviteButton extends StatelessWidget {
@@ -29,13 +30,11 @@ class InviteButton extends StatelessWidget {
           ),
         ),
         padding: WidgetStateProperty.all(
-          const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         ),
         backgroundColor: WidgetStateProperty.all(
           backgroundColor ??
-              (isConfirm
-                  ? context.colorScheme.onSurface
-                  : context.colorScheme.surface),
+              (isConfirm ? Colors.green : context.colorScheme.surface),
         ),
         overlayColor: WidgetStateProperty.resolveWith<Color?>(
           (Set<WidgetState> states) {
@@ -50,14 +49,18 @@ class InviteButton extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
+          Icon(
+            isConfirm ? LucideIcons.circle_check : Icons.cancel,
+            size: 20,
+            color: textColor ??
+                (isConfirm ? Colors.white : context.colorScheme.error),
+          ),
           const SizedBox(width: 6),
           Text(
             text,
             style: context.textTheme.titleMedium!.copyWith(
               color: textColor ??
-                  (isConfirm
-                      ? context.colorScheme.onSurfaceVariant
-                      : context.colorScheme.onSurface),
+                  (isConfirm ? Colors.white : context.colorScheme.onSurface),
             ),
           ),
         ],

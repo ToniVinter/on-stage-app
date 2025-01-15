@@ -8,6 +8,7 @@ class DuplicateEventRequest with _$DuplicateEventRequest {
   const factory DuplicateEventRequest({
     required String? name,
     required String? dateTime,
+    @Default(true) bool containsGroups,
   }) = _DuplicateEventRequest;
 
   factory DuplicateEventRequest.fromJson(Map<String, dynamic> json) =>

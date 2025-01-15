@@ -87,29 +87,31 @@ class CustomSideNavigation extends StatelessWidget {
 
   Widget _buildNavigationItems(BuildContext context) {
     return Expanded(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          ...items.asMap().entries.map((entry) {
-            final index = entry.key;
-            final item = entry.value;
-            final isSelected = index == selectedIndex;
+      child: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            ...items.asMap().entries.map((entry) {
+              final index = entry.key;
+              final item = entry.value;
+              final isSelected = index == selectedIndex;
 
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 8),
-              child: InkWell(
-                onTap: () => onDestinationSelected(index),
-                borderRadius: _getBorderRadius(),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 4),
-                  child: isExpanded
-                      ? _buildExpandedItem(context, item, isSelected)
-                      : _buildCollapsedItem(context, item, isSelected),
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: InkWell(
+                  onTap: () => onDestinationSelected(index),
+                  borderRadius: _getBorderRadius(),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 4),
+                    child: isExpanded
+                        ? _buildExpandedItem(context, item, isSelected)
+                        : _buildCollapsedItem(context, item, isSelected),
+                  ),
                 ),
-              ),
-            );
-          }),
-        ],
+              );
+            }),
+          ],
+        ),
       ),
     );
   }
@@ -233,7 +235,7 @@ class CustomSideNavigation extends StatelessWidget {
     const logoutLabel = Text('Sign Out');
 
     return Padding(
-      padding: const EdgeInsets.only(bottom: 32),
+      padding: EdgeInsets.only(bottom: 32, left: isExpanded ? 12 : 16),
       child: isExpanded
           ? Row(children: [logoutIcon, logoutLabel])
           : Column(

@@ -29,56 +29,57 @@ class ParticipantListingItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Slidable(
-      enabled: canEdit,
-      key: ValueKey(name),
-      endActionPane: ActionPane(
-        motion: const ScrollMotion(),
-        extentRatio: 0.3,
-        dismissible: DismissiblePane(onDismissed: onDelete),
-        children: [
-          SlidableAction(
-            onPressed: (_) => onDelete(),
-            backgroundColor: Colors.red,
-            foregroundColor: Colors.white,
-            borderRadius: BorderRadius.circular(8),
-            label: 'Delete',
+    return ClipRect(
+      child: Slidable(
+        enabled: canEdit,
+        key: ValueKey(name),
+        endActionPane: ActionPane(
+          motion: const ScrollMotion(),
+          extentRatio: 0.3,
+          dismissible: DismissiblePane(onDismissed: onDelete),
+          children: [
+            SlidableAction(
+              onPressed: (_) => onDelete(),
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+              borderRadius: BorderRadius.circular(8),
+              label: 'Delete',
+            ),
+          ],
+        ),
+        child: Material(
+          color: Colors.transparent,
+          child: ListTile(
+            dense: true,
+            minVerticalPadding: 0,
+            contentPadding: EdgeInsets.zero,
+            shape: const RoundedRectangleBorder(
+              borderRadius: BorderRadius.all(Radius.circular(8)),
+            ),
+            leading: ImageWithPlaceholder(
+              photo: photo,
+              name: name,
+            ),
+            title: Text(
+              name,
+              style: context.textTheme.titleMedium,
+            ),
+            trailing: trailing ??
+                (status != null && status != StagerStatusEnum.UNINVINTED
+                    ? _statusIcon(context, status)
+                    : null),
+            splashColor: context.colorScheme.outline.withOpacity(0.1),
+            onTap: userId.isEmpty
+                ? null
+                : () {
+                    context.pushNamed(
+                      AppRoute.userProfileInfo.name,
+                      queryParameters: {
+                        'userId': userId,
+                      },
+                    );
+                  },
           ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: ListTile(
-          dense: true,
-          minVerticalPadding: 0,
-          contentPadding:
-              const EdgeInsets.symmetric(vertical: 4, horizontal: 12),
-          shape: const RoundedRectangleBorder(
-            borderRadius: BorderRadius.all(Radius.circular(8)),
-          ),
-          leading: ImageWithPlaceholder(
-            photo: photo,
-            name: name,
-          ),
-          title: Text(
-            name,
-            style: context.textTheme.titleMedium,
-          ),
-          trailing: trailing ??
-              (status != null && status != StagerStatusEnum.UNINVINTED
-                  ? _statusIcon(context, status)
-                  : null),
-          splashColor: context.colorScheme.outline.withOpacity(0.1),
-          onTap: userId.isEmpty
-              ? null
-              : () {
-                  context.pushNamed(
-                    AppRoute.userProfileInfo.name,
-                    queryParameters: {
-                      'userId': userId,
-                    },
-                  );
-                },
         ),
       ),
     );

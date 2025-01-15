@@ -71,6 +71,7 @@ class _DateTimeTextFieldWidgetState extends State<DateTimeTextFieldWidget> {
   }
 
   void _onDateChanged(DateTime newDate) {
+    print('newDate: $newDate');
     setState(() {
       _selectedDate = newDate;
     });
@@ -78,6 +79,7 @@ class _DateTimeTextFieldWidgetState extends State<DateTimeTextFieldWidget> {
   }
 
   void _onTimeChanged(TimeOfDay newTime) {
+    print('newTime: $newTime');
     setState(() {
       _selectedTime = newTime;
     });
@@ -111,6 +113,7 @@ class _DateTimeTextFieldWidgetState extends State<DateTimeTextFieldWidget> {
                       setState(() {
                         _selectedDate ??= _now;
                       });
+                      _onDateChanged(_now);
                       if (renderBox != null) {
                         showCupertinoCalendarPicker(
                           context,
@@ -182,15 +185,18 @@ class _DateTimeTextFieldWidgetState extends State<DateTimeTextFieldWidget> {
                       if (!widget.enabled) return;
                       final renderBox = _timePickerKey.currentContext
                           ?.findRenderObject() as RenderBox?;
+                      final now = TimeOfDay.fromDateTime(
+                        TimeUtils().approximateToNearestInterval(
+                          DateTime.now(),
+                          UtilConstants.minuteInterval,
+                        ),
+                      );
                       if (renderBox != null) {
                         setState(() {
-                          _selectedTime ??= TimeOfDay.fromDateTime(
-                            TimeUtils().approximateToNearestInterval(
-                              DateTime.now(),
-                              UtilConstants.minuteInterval,
-                            ),
-                          );
+                          _selectedTime ??= now;
                         });
+
+                        _onTimeChanged(_selectedTime!);
 
                         showCupertinoTimePicker(
                           context,
